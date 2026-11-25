@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Question Answering System | Chetan Krishna (25ETAI410034)</title>
+  <style>
+    /* Clean, Simple Student Project Styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f1f5f9;
+      color: #1e293b;
+      line-height: 1.6;
+      padding-bottom: 50px;
+    }
+
+    /* Top Header */
+    header {
+      background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+      color: #ffffff;
+      padding: 22px 24px;
+      border-bottom: 3px solid #172554;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .header-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-inner h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .header-inner p {
+      font-size: 0.88rem;
+      color: #bfdbfe;
+      margin-top: 4px;
+    }
+
+    .student-badge {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.86rem;
+      text-align: right;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 860px;
+      margin: 28px auto;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Cards */
+    .card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 22px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #2563eb;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      padding: 9px 18px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background-color: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+    }
+
+    .btn-secondary:hover {
+      background-color: #e2e8f0;
+    }
+
+    .btn-sm {
+      padding: 5px 12px;
+      font-size: 0.8rem;
+    }
+
+    /* KB Status Box */
+    .status-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 14px 16px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .status-highlight {
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .preview-textarea {
+      width: 100%;
+      height: 140px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.82rem;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #ffffff;
+      margin-top: 12px;
+      display: none;
+      resize: vertical;
+    }
+
+    .preview-textarea.open {
+      display: block;
+    }
+
+    /* Presets Chips */
+    .presets-label {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 10px;
+    }
+
+    .presets-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .preset-btn {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-family: Consolas, monospace;
+      cursor: pointer;
+      color: #1e293b;
+      transition: all 0.15s ease;
+    }
+
+    .preset-btn:hover {
+      background: #eff6ff;
+      border-color: #93c5fd;
+      color: #1d4ed8;
+    }
+
+    /* Question Input */
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .question-input {
+      flex: 1;
+      font-family: Consolas, monospace;
+      font-size: 0.95rem;
+      padding: 10px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      outline: none;
+      color: #0f172a;
+    }
+
+    .question-input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    /* Answer Display */
+    .answer-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 18px;
+    }
+
+    .answer-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    .answer-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #15803d;
+      background: #ffffff;
+      padding: 10px 14px;
+      border: 1px solid #bbf7d0;
+      border-radius: 6px;
+      margin: 8px 0;
+      font-family: Consolas, monospace;
+      word-break: break-all;
+    }
+
+    .answer-derivation {
+      font-size: 0.85rem;
+      color: #475569;
+      margin-top: 6px;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      margin-top: 35px;
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Banner -->
+  <header>
+    <div class="header-inner">
+      <div>
+        <h1>📄 Rule-Based Question Answering System</h1>
+        <p>Symbolic AI using Semantic Triples &amp; Forward Chaining</p>
+      </div>
+      <div class="student-badge">
+        <div><strong>Name:</strong> Chetan Krishna</div>
+        <div><strong>Reg Number:</strong> 25ETAI410034</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Knowledge Base Info -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Document Knowledge Base</div>
+        <button id="btnTogglePreview" class="btn btn-secondary btn-sm">👁️ View Facts &amp; Rules</button>
+      </div>
+
+      <div class="status-box">
+        <div><strong>Source Document:</strong> <span class="status-highlight">football_data.txt</span> (Pre-loaded)</div>
+        <div><strong>Knowledge Base:</strong> <span class="status-highlight">7</span> direct facts and <span class="status-highlight">3</span> rules loaded.</div>
+        <div><strong>Forward Chaining:</strong> Deduced <span class="status-highlight" style="color: #16a34a;">5</span> new implicit facts (Total: <span class="status-highlight">12</span> facts in memory).</div>
+      </div>
+
+      <textarea id="previewText" class="preview-textarea" readonly></textarea>
+    </div>
+
+    <!-- Ask a Question -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Ask a Question</div>
+      </div>
+
+      <div class="presets-label">Click any sample query from the assignment, or type your own:</div>
+
+      <div class="presets-grid">
+        <button class="preset-btn" data-query="FIND: Jude_Bellingham | plays_for">1. FIND: Jude_Bellingham | plays_for</button>
+        <button class="preset-btn" data-query="FIND: Jude_Bellingham | coached_by">2. FIND: Jude_Bellingham | coached_by</button>
+        <button class="preset-btn" data-query="FIND: Jude_Bellingham | eligible_for_confederation">3. FIND: Jude_Bellingham | eligible_for_confederation</button>
+        <button class="preset-btn" data-query="CHECK: Bukayo_Saka | plays_in_league | Premier_League">4. CHECK: Bukayo_Saka | plays_in_league</button>
+        <button class="preset-btn" data-query="TRACE: Bukayo_Saka | UEFA">5. TRACE: Bukayo_Saka | UEFA</button>
+        <button class="preset-btn" data-query="FIND: Jude_Bellingham | won_world_cup">6. Negative Test</button>
+      </div>
+
+      <div class="input-row">
+        <input type="text" id="questionInput" class="question-input" placeholder="e.g. FIND: Jude_Bellingham | coached_by" value="FIND: Jude_Bellingham | coached_by">
+        <button id="btnGetAnswer" class="btn">Get Answer</button>
+      </div>
+
+      <div style="font-size: 0.8rem; color: #64748b; margin-top: 6px;">
+        * Supported formats: <code>FIND: &lt;Subject&gt; | &lt;Relation&gt;</code> &nbsp;|&nbsp; <code>CHECK: &lt;Subject&gt; | &lt;Relation&gt; | &lt;Object&gt;</code> &nbsp;|&nbsp; <code>TRACE: &lt;Start&gt; | &lt;End&gt;</code>
+      </div>
+    </div>
+
+    <!-- Answer Result -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Answer Result</div>
+      </div>
+
+      <div class="answer-card">
+        <div class="answer-title">Question:</div>
+        <div style="font-size: 0.95rem; font-weight: 600; color: #1e293b;" id="displayQuestion">FIND: Jude_Bellingham | coached_by</div>
+
+        <div class="answer-title" style="margin-top: 12px;">Answer:</div>
+        <div class="answer-value" id="displayAnswer">carlo_ancelotti</div>
+
+        <div class="answer-derivation" id="displayDerivation">
+          ↳ Inferred using rule: plays_for + managed_by =&gt; coached_by
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div>A Rule-Based Symbolic Question Answering System</div>
+    <div style="margin-top: 3px;">Assignment by <strong>Chetan Krishna</strong> | Reg Number: <strong>25ETAI410034</strong></div>
+  </footer>
+
+  <script>
+    class SymbolicQAEngine {
+      constructor() {
+        this.directFacts = [];
+        this.rules = [];
+        this.inferredFacts = [];
+        this.allFacts = [];
+      }
+
+      loadKB(text) {
+        this.directFacts = [];
+        this.rules = [];
+        this.inferredFacts = [];
+        this.allFacts = [];
+
+        const lines = text.split("\n");
+        let factId = 1;
+        let ruleId = 1;
+
+        for (let rawLine of lines) {
+          const line = rawLine.trim();
+          if (!line || line.startsWith("#")) continue;
+
+          if (line.startsWith("FACT:")) {
+            const parts = line.substring(5).split("|");
+            if (parts.length === 3) {
+              const s = parts[0].trim().toLowerCase();
+              const r = parts[1].trim().toLowerCase();
+              const o = parts[2].trim().toLowerCase();
+              this.directFacts.push({ s, r, o, id: `F${factId++}`, isDirect: true });
+            }
+          } else if (line.startsWith("RULE:")) {
+            const parts = line.substring(5).split("=>");
+            if (parts.length === 2) {
+              const left = parts[0].split("+");
+              if (left.length === 2) {
+                const r1 = left[0].trim().toLowerCase();
+                const r2 = left[1].trim().toLowerCase();
+                const inferred_r = parts[1].trim().toLowerCase();
+                this.rules.push({ r1, r2, inferred_r, id: `R${ruleId++}`, raw: line });
+              }
+            }
+          }
+        }
+
+        this.allFacts = [...this.directFacts];
+        return {
+          directCount: this.directFacts.length,
+          ruleCount: this.rules.length
+        };
+      }
+
+      applyRules() {
+        this.inferredFacts = [];
+        this.allFacts = [...this.directFacts];
+
+        let added = true;
+        let iteration = 1;
+
+        while (added) {
+          added = false;
+          const newFactsThisRound = [];
+
+          for (let f1 of this.allFacts) {
+            for (let f2 of this.allFacts) {
+              if (f1.o === f2.s) {
+                for (let rule of this.rules) {
+                  if (f1.r === rule.r1 && f2.r === rule.r2) {
+                    const candidate = {
+                      s: f1.s,
+                      r: rule.inferred_r,
+                      o: f2.o,
+                      isDirect: false,
+                      rule: rule
+                    };
+
+                    const existsInAll = this.allFacts.some(
+                      f => f.s === candidate.s && f.r === candidate.r && f.o === candidate.o
+                    );
+                    const existsInNew = newFactsThisRound.some(
+                      f => f.s === candidate.s && f.r === candidate.r && f.o === candidate.o
+                    );
+
+                    if (!existsInAll && !existsInNew) {
+                      newFactsThisRound.push(candidate);
+                      added = true;
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          this.inferredFacts.push(...newFactsThisRound);
+          this.allFacts.push(...newFactsThisRound);
+
+          iteration++;
+          if (iteration > 20) break;
+        }
+
+        return {
+          totalFacts: this.allFacts.length,
+          inferredCount: this.inferredFacts.length
+        };
+      }
+
+      findPath(startEntity, goalEntity) {
+        const start = startEntity.trim().toLowerCase();
+        const goal = goalEntity.trim().toLowerCase();
+
+        const queue = [[{ s: start, r: "start", o: start }]];
+        const visited = new Set();
+
+        while (queue.length > 0) {
+          const path = queue.shift();
+          const current = path[path.length - 1].o;
+
+          if (current === goal) {
+            return path.slice(1);
+          }
+
+          if (!visited.has(current)) {
+            visited.add(current);
+            for (let fact of this.allFacts) {
+              if (fact.s === current) {
+                queue.push([...path, fact]);
+              }
+            }
+          }
+        }
+        return null;
+      }
+
+      answerQuestion(queryString) {
+        const q = queryString.trim();
+        const qLower = q.toLowerCase();
+
+        // FIND:
+        if (qLower.startsWith("find:")) {
+          const parts = q.substring(5).split("|");
+          if (parts.length !== 2) {
+            return { answer: "Invalid format. Expected: FIND: <Subject> | <Relation>", success: false };
+          }
+          const s = parts[0].trim().toLowerCase();
+          const r = parts[1].trim().toLowerCase();
+          const matches = this.allFacts.filter(f => f.s === s && f.r === r);
+
+          if (matches.length > 0) {
+            const answers = matches.map(m => m.o);
+            const derivation = matches[0].isDirect
+              ? "Direct fact stored in Knowledge Base"
+              : `Inferred using rule: ${matches[0].rule.r1} + ${matches[0].rule.r2} => ${matches[0].rule.inferred_r}`;
+            return {
+              answer: answers.join(", "),
+              derivation,
+              success: true
+            };
+          }
+          return { answer: "No matching record found.", success: false };
+        }
+
+        // CHECK:
+        if (qLower.startsWith("check:")) {
+          const parts = q.substring(6).split("|");
+          if (parts.length !== 3) {
+            return { answer: "Invalid format. Expected: CHECK: <Subject> | <Relation> | <Object>", success: false };
+          }
+          const s = parts[0].trim().toLowerCase();
+          const r = parts[1].trim().toLowerCase();
+          const o = parts[2].trim().toLowerCase();
+          const found = this.allFacts.find(f => f.s === s && f.r === r && f.o === o);
+
+          if (found) {
+            const info = found.isDirect ? "Direct fact from Knowledge Base" : `Inferred using rule: ${found.rule.r1} + ${found.rule.r2} => ${found.rule.inferred_r}`;
+            return {
+              answer: "True (Verified from Knowledge Base)",
+              derivation: info,
+              success: true
+            };
+          }
+          return { answer: "False (Not found in Knowledge Base)", success: false };
+        }
+
+        // TRACE:
+        if (qLower.startsWith("trace:")) {
+          const parts = q.substring(6).split("|");
+          if (parts.length !== 2) {
+            return { answer: "Invalid format. Expected: TRACE: <Start> | <End>", success: false };
+          }
+          const start = parts[0].trim().toLowerCase();
+          const end = parts[1].trim().toLowerCase();
+          const path = this.findPath(start, end);
+
+          if (path) {
+            const pathStr = path.map(f => `${f.s} -[${f.r}]-> ${f.o}`).join(" -> ");
+            return {
+              answer: pathStr,
+              derivation: `Shortest BFS path (${path.length} hops)`,
+              success: true
+            };
+          }
+          return { answer: "No connection path found.", success: false };
+        }
+
+        // Natural Language Fallback
+        const normalized = qLower.replace(/[?.,!]/g, "");
+        for (let f of this.allFacts) {
+          const sName = f.s.replace(/_/g, " ");
+          const rName = f.r.replace(/_/g, " ");
+          if (normalized.includes(sName) && (normalized.includes(rName) || this.matchesSynonym(normalized, f.r))) {
+            const derivation = f.isDirect
+              ? "Direct fact from Knowledge Base"
+              : `Inferred using rule: ${f.rule.r1} + ${f.rule.r2} => ${f.rule.inferred_r}`;
+            return {
+              answer: f.o,
+              derivation: `Matched (${f.s}, ${f.r}) => ${f.o} (${derivation})`,
+              success: true
+            };
+          }
+        }
+
+        return {
+          answer: "No matching record found.",
+          derivation: "Tip: Use formal format e.g. FIND: <Subject> | <Relation>",
+          success: false
+        };
+      }
+
+      matchesSynonym(query, relation) {
+        if (relation === "plays_for" && (query.includes("play for") || query.includes("team") || query.includes("club"))) return true;
+        if (relation === "coached_by" && (query.includes("coach") || query.includes("manager") || query.includes("managed"))) return true;
+        if (relation === "managed_by" && (query.includes("manager") || query.includes("managed"))) return true;
+        if (relation === "competes_in" && (query.includes("league") || query.includes("compete"))) return true;
+        if (relation === "governed_by" && (query.includes("govern") || query.includes("body"))) return true;
+        return false;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const engine = new SymbolicQAEngine();
+
+      const btnTogglePreview = document.getElementById("btnTogglePreview");
+      const previewText = document.getElementById("previewText");
+
+      const questionInput = document.getElementById("questionInput");
+      const btnGetAnswer = document.getElementById("btnGetAnswer");
+      const presetBtns = document.querySelectorAll(".preset-btn");
+
+      const displayQuestion = document.getElementById("displayQuestion");
+      const displayAnswer = document.getElementById("displayAnswer");
+      const displayDerivation = document.getElementById("displayDerivation");
+
+      const KB_TEXT = `FACT: Jude_Bellingham | plays_for | Real_Madrid
+FACT: Real_Madrid | managed_by | Carlo_Ancelotti
+FACT: Real_Madrid | competes_in | La_Liga
+FACT: La_Liga | governed_by | UEFA
+FACT: Bukayo_Saka | plays_for | Arsenal
+FACT: Arsenal | competes_in | Premier_League
+FACT: Premier_League | governed_by | UEFA
+RULE: plays_for + managed_by => coached_by
+RULE: plays_for + competes_in => plays_in_league
+RULE: plays_in_league + governed_by => eligible_for_confederation`;
+
+      // Load Knowledge Base
+      engine.loadKB(KB_TEXT);
+      engine.applyRules();
+      previewText.value = KB_TEXT;
+
+      // Toggle preview
+      btnTogglePreview.addEventListener("click", () => {
+        previewText.classList.toggle("open");
+        btnTogglePreview.textContent = previewText.classList.contains("open")
+          ? "🔼 Hide Facts & Rules"
+          : "👁️ View Facts & Rules";
+      });
+
+      function runQuery(query) {
+        const q = query.trim();
+        if (!q) return;
+
+        displayQuestion.textContent = q;
+
+        const res = engine.answerQuestion(q);
+        displayAnswer.textContent = res.answer;
+
+        if (res.derivation) {
+          displayDerivation.textContent = `↳ ${res.derivation}`;
+          displayDerivation.style.display = "block";
+        } else {
+          displayDerivation.style.display = "none";
+        }
+
+        if (res.success === false) {
+          displayAnswer.style.color = "#dc2626";
+          displayAnswer.style.borderColor = "#fecaca";
+        } else {
+          displayAnswer.style.color = "#15803d";
+          displayAnswer.style.borderColor = "#bbf7d0";
+        }
+      }
+
+      // Initial run
+      runQuery("FIND: Jude_Bellingham | coached_by");
+
+      btnGetAnswer.addEventListener("click", () => {
+        runQuery(questionInput.value);
+      });
+
+      questionInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") runQuery(questionInput.value);
+      });
+
+      presetBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const q = btn.dataset.query;
+          questionInput.value = q;
+          runQuery(q);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
